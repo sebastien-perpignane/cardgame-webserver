@@ -1,0 +1,6 @@
+export game_id=$(curl -X "POST"  http://localhost:8080/contree/game/create) && echo $game_id
+curl -v -X "POST"  http://localhost:8080/contree/game/${game_id}/join
+
+curl -v -X "POST" -H "Content-Type: application/json"  http://localhost:8080/contree/game/${game_id}/place-bid --data '{"playerName": "Seb", "bidValue": "EIGHTY", "cardSuit": "DIAMONDS"}'
+
+curl -v -X "POST" -H "Content-Type: application/json"  http://localhost:8080/contree/game/${game_id}/play-card --data '{"playerName": "Seb", "card": "JACK_SPADE"}'
