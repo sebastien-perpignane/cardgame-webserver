@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <title>Hello WebSocket</title>
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/main.css" rel="stylesheet">
+    <!-- <link href="/main.css" rel="stylesheet"> -->
+    <link rel="icon" href="data:;base64,=">
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
@@ -18,9 +19,9 @@
         <div class="col-md-6">
             <form class="form-inline">
                 <div class="form-group">
-                    <label for="connect">WebSocket connection:</label>
-                    <button id="connect" class="btn btn-default" type="submit">Connect</button>
-                    <button id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect
+                    <!--<label for="connect">WebSocket connection:</label> -->
+                    <button id="connect" class="btn btn-default" type="submit">Start new game</button>
+                    <!--<button id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect -->
                     </button>
                 </div>
             </form>
@@ -57,6 +58,42 @@
             </table>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="bid-value">Bid value</label>
+                    <input type="text" id="bid-value" class="form-control" placeholder="Bid value here...">
+                </div>
+                <div class="form-group">
+                    <label for="bid-suit">Bid suit</label>
+                    <select id="bid-suit">
+                        <option value="DIAMONDS">Diamond</option>
+                        <option value="HEARTS">Heart</option>
+                        <option value="SPADES">Spade</option>
+                        <option value="CLUBS">Club</option>
+                    </select>
+
+                    <!--<input type="text" id="bid-suit" class="form-control" placeholder="Bid suit here...">-->
+                </div>
+                <button id="place-bid" class="btn btn-default" type="submit">Place bid</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="played-card">Card</label>
+                    <input type="text" id="played-card" class="form-control" placeholder="Card here...">
+                </div>
+                <button id="play-card" class="btn btn-default" type="submit">Play card</button>
+            </form>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>
