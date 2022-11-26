@@ -4,8 +4,9 @@
 
 Using my cardgame project to implement a browser belote contree game.
 
-Main objectives for now : learning websockets, integration of the cardgame engine in a server app, JS coding, have fun
-Later objectives : learn React
+Main objectives for now : learning websockets, integration of the cardgame engine in a server app, JS coding, have fun.
+
+Later objectives : learn React.
 
 ### Reference Documentation
 For further reference, please consider the following sections:
