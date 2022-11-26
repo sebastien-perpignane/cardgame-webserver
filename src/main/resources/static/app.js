@@ -16,11 +16,12 @@ function setConnected(connected) {
 function connect() {
     var socket = new SockJS('/stomp');
     stompClient = Stomp.over(socket);
+    stompClient.debug = function(str) {};
     stompClient.connect({}, function (frame) {
         setConnected(true);
         console.log('Connected: ' + frame);
         stompClient.subscribe('/topic/game', function (greeting) {
-            showGreeting(JSON.parse(greeting.body).content);
+            displayPlayerMessage(JSON.parse(greeting.body).content);
         });
     });
 }
@@ -29,6 +30,7 @@ function startNewGame() {
 
     var socket = new SockJS('/stomp');
     stompClient = Stomp.over(socket);
+    stompClient.debug = function(str) {};
     stompClient.connect({}, function (frame) {
 
 
@@ -36,7 +38,7 @@ function startNewGame() {
         setConnected(true);
         console.log('Connected: ' + frame);
         /*stompClient.subscribe('/topic/game', function (greeting) {
-            showGreeting(JSON.parse(greeting.body).content);
+            displayPlayerMessage(JSON.parse(greeting.body).content);
         });*/
 
         $.ajax({
@@ -48,8 +50,31 @@ function startNewGame() {
                 console.log("Data : " + data);
                 console.log("Game Id : " + gameId);
 
-                stompClient.subscribe('/topic/game/' + gameId, function(greeting) {
-                    showGreeting(greeting.body);
+                stompClient.subscribe('/topic/game/' + gameId, function(message) {
+                    let event = JSON.parse(message.body);
+                    let eventData = event.eventData;
+
+                    if (typeof eventData === 'string' || eventData instanceof String) {
+                        //eventData = JSON.stringify(eventData);
+                        displayPlayerMessage(eventData);
+                    }
+                    else {
+                        switch(event.type) {
+                            case 'PLAY_TURN':
+                                managePlayTurn(event)
+                                break
+                            case 'BID_TURN':
+                                manageBidTurn(event)
+                                break
+                            case 'PLACED_BID':
+                                managePlacedBid(event);
+                                break;
+                            default:
+                                let eventDataAsStr = JSON.stringify(eventData);
+                                displayPlayerMessage(eventDataAsStr);
+                        }
+                    }
+
                 });
 
                 $.ajax({
@@ -76,6 +101,57 @@ function startNewGame() {
     });
 }
 
+function managePlacedBid(event) {
+    let eventData = event.eventData
+    console.log("managePlacedBid event data : " + JSON.stringify(eventData))
+    let myPlayer = eventData.player
+    let bidValue = eventData.bidValue
+    let cardSuit = eventData.cardSuit
+
+    let placedBidMessage = myPlayer.name + '(' + myPlayer.team + ') bids ' + bidValue + ' ' + (cardSuit == null ? '' : cardSuit);
+    console.log('placedBidMessage: ' + placedBidMessage)
+
+    displayPlayerMessage(placedBidMessage);
+
+}
+
+function managePlayTurn(event) {
+
+    $('#play-form').show();
+    $('#bid-form').hide();
+
+    let eventData = event.eventData
+    let playCardSelect = document.getElementById('played-card');
+    playCardSelect.innerHTML = "";
+    for (let index = 0; index < eventData.allowedCards.length; ++index) {
+        const element = eventData.allowedCards[index];
+        let opt = document.createElement('option');
+        opt.value = element;
+        opt.innerHTML = element;
+        playCardSelect.appendChild(opt);
+    }
+}
+
+function manageBidTurn(event) {
+
+    $('#play-form').hide();
+    $('#bid-form').show();
+
+    let eventData = event.eventData
+    let bidValueSelect = document.getElementById('bid-value');
+    bidValueSelect.innerHTML = "";
+    for (let index = 0; index < eventData.allowedBidValues.length; ++index) {
+        const element = eventData.allowedBidValues[index];
+        let opt = document.createElement('option');
+        opt.value = element;
+        opt.innerHTML = element;
+        bidValueSelect.appendChild(opt);
+    }
+
+    $('#hand').val(JSON.stringify(eventData.hand));
+
+}
+
 function disconnect() {
     if (stompClient !== null) {
         stompClient.disconnect();
@@ -88,14 +164,14 @@ function sendName() {
     stompClient.send("/app/hello", {}, JSON.stringify({'name': $("#name").val()}));
 }
 
-function showGreeting(message) {
-    $("#greetings").append("<tr><td>" + message + "</td></tr>");
+function displayPlayerMessage(message) {
+    $("#messages").append("<tr><td>" + message + "</td></tr>");
 }
 
 function subscribe() {
     stompClient.subscribe('/topic/game/' + $("#game-id").val(), function(greeting) {
         //alert(greeting);
-        showGreeting(greeting.body);
+        displayPlayerMessage(greeting.body);
     });
 }
 

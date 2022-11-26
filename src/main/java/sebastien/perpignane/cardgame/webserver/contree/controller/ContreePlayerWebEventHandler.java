@@ -26,26 +26,28 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
 
     @Override
     public void onPlayerTurnToBid(Set<ContreeBidValue> allowedBidValues) {
-
-        var event = new BidTurnEvent(allowedBidValues.stream().sorted().toList(), ClassicalCard.sort(contreePlayer.getHand()));
-
-        contreeEventService.sendAnyGameEvent(gameId, event);
+        var eventData = new BidTurnEventData(allowedBidValues.stream().sorted().toList(), ClassicalCard.sort(contreePlayer.getHand()));
+        var bidTurnEvent = new PlayerEvent(PlayerEventType.BID_TURN, eventData);
+        contreeEventService.sendAnyGameEvent(gameId, bidTurnEvent);
     }
 
     @Override
     public void onPlayerTurn(Set<ClassicalCard> allowedCards) {
-        var event = new PlayTurnEvent(ClassicalCard.sort(allowedCards), ClassicalCard.sort(contreePlayer.getHand()));
-        contreeEventService.sendAnyGameEvent(gameId, event);
+        var eventData = new PlayTurnEventData(ClassicalCard.sort(allowedCards), ClassicalCard.sort(contreePlayer.getHand()));
+        var playerTurnEvent = new PlayerEvent(PlayerEventType.PLAY_TURN, eventData);
+        contreeEventService.sendAnyGameEvent(gameId, playerTurnEvent);
     }
 
     @Override
     public void onGameOver() {
-        contreeEventService.sendAnyGameEvent(gameId, "game is over");
+        var playerGameOverEvent = new PlayerEvent(PlayerEventType.GAME_OVER, "game is over");
+        contreeEventService.sendAnyGameEvent(gameId, playerGameOverEvent);
     }
 
     @Override
     public void onGameStarted() {
-        contreeEventService.sendAnyGameEvent(gameId, "game is started");
+        var playerGameStartedEvent = new PlayerEvent(PlayerEventType.GAME_STARTED, "game is started");
+        contreeEventService.sendAnyGameEvent(gameId, playerGameStartedEvent);
     }
 
     @Override
@@ -59,9 +61,14 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
     }
 }
 
-record BidTurnEvent(List<ContreeBidValue> allowedBidValues, List<ClassicalCard> hand) {
+enum PlayerEventType {
+    BID_TURN,
+    PLAY_TURN,
+    GAME_STARTED, GAME_OVER
 }
 
-record PlayTurnEvent(List<ClassicalCard> allowedCards, List<ClassicalCard> hand) {
+record PlayerEvent(PlayerEventType type, Object eventData) { }
 
-}
+record BidTurnEventData(List<ContreeBidValue> allowedBidValues, List<ClassicalCard> hand) { }
+
+record PlayTurnEventData(List<ClassicalCard> allowedCards, List<ClassicalCard> hand) { }
