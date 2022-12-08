@@ -165,6 +165,8 @@ record EndOfDealEventData(
 
 }
 
-record CardPlayedEventData(String player, ClassicalCard card) {}
+record CardPlayedEventData(
+        String player,
+        ClassicalCard card) {}
 
 record BidPlacedEventData(Map<String, String> player, ContreeBidValue bidValue, CardSuit cardSuit) {}

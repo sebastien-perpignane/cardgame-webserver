@@ -8,12 +8,27 @@ import sebastien.perpignane.cardgame.game.GameTextDisplayer;
 import sebastien.perpignane.cardgame.game.contree.ContreeBidValue;
 import sebastien.perpignane.cardgame.game.contree.ContreeGame;
 import sebastien.perpignane.cardgame.game.contree.ContreeGameFactory;
-import sebastien.perpignane.cardgame.player.contree.local.thread.ThreadContreeBotPlayer;
-import sebastien.perpignane.cardgame.player.contree.event.handler.ContreePlayerEventHandlerImpl;
 import sebastien.perpignane.cardgame.player.contree.ContreePlayer;
+import sebastien.perpignane.cardgame.player.contree.event.handler.ContreePlayerEventHandlerImpl;
+import sebastien.perpignane.cardgame.player.contree.local.thread.ThreadContreeBotPlayer;
 import sebastien.perpignane.cardgame.webserver.contree.websocket.ContreeEventService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+record GameState(
+        String gameId,
+        List<String> players,
+        int team1Score,
+        int team2Score,
+        int maxScore) {
+
+}
+
+record JoinGameRequest(String playerName) {
+}
 
 @RestController
 @RequestMapping("/contree/game")
@@ -45,15 +60,25 @@ public class ContreeGameController {
     }
 
     @PostMapping("/{gameId}/join")
-    public String joinGame(@PathVariable String gameId) {
+    public GameState joinGame(@PathVariable String gameId, @RequestBody JoinGameRequest joinGameRequest) {
+
+        var game = games.get(gameId);
 
         var playerHandler = new ContreePlayerWebEventHandler(contreeEventService, gameId);
 
-        sebPlayer = new ContreePlayerEventHandlerImpl(playerHandler);
+        sebPlayer = new ContreePlayerEventHandlerImpl(joinGameRequest.playerName(), playerHandler);
         playerHandler.setPlayer(sebPlayer);
-        games.get(gameId).joinGame(sebPlayer);
+        game.joinGame(sebPlayer);
 
-        return "Seb";
+        return new GameState(
+                gameId,
+                game.getPlayers().stream().map(ContreePlayer::getName).toList(),
+                0,
+                0,
+                1000
+        );
+
+        //return "Seb";
     }
 
     @PostMapping("{gameId}/place-bid")

@@ -26,14 +26,16 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
 
     @Override
     public void onPlayerTurnToBid(Set<ContreeBidValue> allowedBidValues) {
-        var eventData = new BidTurnEventData(allowedBidValues.stream().sorted().toList(), ClassicalCard.sort(contreePlayer.getHand()));
+        var handAsCard = ClassicalCard.sort(contreePlayer.getHand());
+        var eventData = new BidTurnEventData(allowedBidValues.stream().sorted().toList(), handAsCard);
         var bidTurnEvent = new PlayerEvent(PlayerEventType.BID_TURN, eventData);
         contreeEventService.sendAnyGameEvent(gameId, bidTurnEvent);
     }
 
     @Override
     public void onPlayerTurn(Set<ClassicalCard> allowedCards) {
-        var eventData = new PlayTurnEventData(ClassicalCard.sort(allowedCards), ClassicalCard.sort(contreePlayer.getHand()));
+        var handAsCard = ClassicalCard.sort(contreePlayer.getHand());
+        var eventData = new PlayTurnEventData(ClassicalCard.sort(allowedCards), handAsCard);
         var playerTurnEvent = new PlayerEvent(PlayerEventType.PLAY_TURN, eventData);
         contreeEventService.sendAnyGameEvent(gameId, playerTurnEvent);
     }

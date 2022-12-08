@@ -16,7 +16,7 @@ function setConnected(connected) {
 function connect() {
     var socket = new SockJS('/stomp');
     stompClient = Stomp.over(socket);
-    stompClient.debug = function(str) {};
+    //stompClient.debug = function(str) {};
     stompClient.connect({}, function (frame) {
         setConnected(true);
         console.log('Connected: ' + frame);
@@ -30,11 +30,8 @@ function startNewGame() {
 
     var socket = new SockJS('/stomp');
     stompClient = Stomp.over(socket);
-    stompClient.debug = function(str) {};
+    //stompClient.debug = function(str) {};
     stompClient.connect({}, function (frame) {
-
-
-
         setConnected(true);
         console.log('Connected: ' + frame);
         /*stompClient.subscribe('/topic/game', function (greeting) {
@@ -81,16 +78,17 @@ function startNewGame() {
                     url: 'http://localhost:8080/contree/game/' + gameId + '/join',
                     type: 'POST',
                     //dataType:'json',
+                    data: {playerName : $('#player-name').val()},
                     success: function (data) {
                         console.log("Join data:" + data);
                     },
-                    error: function (request, error) {
+                    error: function (request) {
                         alert("Request: " + JSON.stringify(request));
                     }
                 });
 
             },
-            error : function(request,error)
+            error : function(request)
             {
                 alert("Request: "+JSON.stringify(request));
             }
@@ -105,10 +103,10 @@ function managePlacedBid(event) {
     let eventData = event.eventData
     console.log("managePlacedBid event data : " + JSON.stringify(eventData))
     let myPlayer = eventData.player
-    let bidValue = eventData.bidValue
+    let bidValue = eventData.bidValue.display
     let cardSuit = eventData.cardSuit
 
-    let placedBidMessage = myPlayer.name + '(' + myPlayer.team + ') bids ' + bidValue + ' ' + (cardSuit == null ? '' : cardSuit);
+    let placedBidMessage = myPlayer.name + '(' + myPlayer.team + ') bids ' + bidValue + ' ' + (cardSuit === null ? '' : cardSuit);
     console.log('placedBidMessage: ' + placedBidMessage)
 
     displayPlayerMessage(placedBidMessage);
@@ -126,10 +124,26 @@ function managePlayTurn(event) {
     for (let index = 0; index < eventData.allowedCards.length; ++index) {
         const element = eventData.allowedCards[index];
         let opt = document.createElement('option');
-        opt.value = element;
-        opt.innerHTML = element;
+        opt.value = element.name;
+        opt.innerHTML = element.display;
         playCardSelect.appendChild(opt);
     }
+
+    displayHand(eventData.hand)
+
+    /*let displayHand = eventData.hand.map((c) => {
+        return c.display
+    });
+
+    $('#hand').val(displayHand);*/
+}
+
+function displayHand(hand) {
+    let displayHand = hand.map((c) => {
+        return c.display
+    });
+
+    $('#hand').val(displayHand);
 }
 
 function manageBidTurn(event) {
@@ -143,12 +157,14 @@ function manageBidTurn(event) {
     for (let index = 0; index < eventData.allowedBidValues.length; ++index) {
         const element = eventData.allowedBidValues[index];
         let opt = document.createElement('option');
-        opt.value = element;
-        opt.innerHTML = element;
+        opt.value = element.name;
+        opt.innerText = element.display;
         bidValueSelect.appendChild(opt);
     }
 
-    $('#hand').val(JSON.stringify(eventData.hand));
+    displayHand(eventData.hand);
+
+    //$('#hand').val(JSON.stringify(eventData.hand));
 
 }
 
@@ -189,7 +205,7 @@ function placeBid() {
         success : function(data) {
             console.log('Place bid data: '+data);
         },
-        error : function(request,error)
+        error : function(request)
         {
             alert("Request: "+JSON.stringify(request));
         }
@@ -209,7 +225,7 @@ function playCard() {
         success : function(data) {
             console.log('Play card data: '+data);
         },
-        error : function(request,error)
+        error : function(request)
         {
             alert("Request: "+JSON.stringify(request));
         }
@@ -220,7 +236,7 @@ $(function () {
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
-    $( "#connect" ).click(function() { startNewGame(); });
+    $( "#start-new-game" ).click(function() { startNewGame(); });
     $( "#disconnect" ).click(function() { disconnect(); });
     $( "#send" ).click(function() { sendName(); });
     $( "#subscribe" ).click(function() { subscribe(); });
