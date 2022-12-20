@@ -42,7 +42,7 @@ public class ContreeGameController {
     private ContreePlayer sebPlayer;
 
     @PostMapping("/create")
-    public String newGame() {
+    public NewGameResponse newGame() {
         var game = ContreeGameFactory.createGame(1500);
         var webObserver = new ContreeGameWebObserver(game.getGameId(), contreeEventService);
         game.registerAsGameObserver(GameTextDisplayer.getInstance());
@@ -51,7 +51,7 @@ public class ContreeGameController {
         game.joinGame(new ThreadContreeBotPlayer());
         game.joinGame(new ThreadContreeBotPlayer());
         games.put(game.getGameId(), game);
-        return game.getGameId();
+        return new NewGameResponse(game.getGameId());
     }
 
     @GetMapping("/list")
@@ -77,8 +77,6 @@ public class ContreeGameController {
                 0,
                 1000
         );
-
-        //return "Seb";
     }
 
     @PostMapping("{gameId}/place-bid")
@@ -107,3 +105,5 @@ record PlayCardRequest(String playerName, ClassicalCard card) {
 record BidRequest(String playerName, ContreeBidValue bidValue, CardSuit cardSuit) {
 
 }
+
+record NewGameResponse(String gameId) {}

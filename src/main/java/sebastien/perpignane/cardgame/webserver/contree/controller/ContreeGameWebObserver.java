@@ -128,6 +128,16 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
         eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.TRUMPED_TRICK, message));
     }
 
+    @Override
+    public void onEndOfTrick(String trickId, ContreeTeam team) {
+        var trickOverEventData = new TrickOverEventData(trickId, team);
+        eventService.sendAnyGameEvent(gameId, trickOverEventData);
+    }
+
+    
+
+    
+
 }
 
 enum EventType {
@@ -147,6 +157,8 @@ enum EventType {
     TRUMPED_TRICK,
     GAME_STATE_UPDATED
 }
+
+record TrickOverEventData(String trickId, ContreeTeam winnerTeam) {}
 
 record ContreeGameEvent(EventType type, Object eventData) {
 }
