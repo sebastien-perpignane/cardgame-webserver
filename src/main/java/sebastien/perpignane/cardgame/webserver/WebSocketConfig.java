@@ -18,6 +18,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import sebastien.perpignane.cardgame.card.CardSuit;
 import sebastien.perpignane.cardgame.card.ClassicalCard;
 import sebastien.perpignane.cardgame.game.contree.ContreeBidValue;
+import sebastien.perpignane.cardgame.webserver.contree.websocket.ContreeGameHandshakeHandler;
+import sebastien.perpignane.cardgame.webserver.contree.websocket.MyHandshakeInterceptor;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,12 +34,14 @@ public class WebSocketConfig implements  WebSocketMessageBrokerConfigurer { // W
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
+        config.setUserDestinationPrefix("/user");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/stomp").setAllowedOrigins("http://localhost:3000").withSockJS();
+        registry.addEndpoint("/stomp").setAllowedOrigins("http://localhost:3000").setHandshakeHandler(new ContreeGameHandshakeHandler()).addInterceptors(new MyHandshakeInterceptor()).withSockJS();
+        registry.addEndpoint("/stomp").setAllowedOrigins("http://localhost:3000").setHandshakeHandler(new ContreeGameHandshakeHandler()).addInterceptors(new MyHandshakeInterceptor());
     }
 
     @Override

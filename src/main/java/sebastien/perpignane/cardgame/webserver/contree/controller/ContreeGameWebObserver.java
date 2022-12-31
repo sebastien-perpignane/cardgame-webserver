@@ -13,8 +13,6 @@ import sebastien.perpignane.cardgame.player.contree.ContreePlayer;
 import sebastien.perpignane.cardgame.player.contree.ContreeTeam;
 import sebastien.perpignane.cardgame.webserver.contree.websocket.ContreeEventService;
 
-import java.util.Map;
-
 public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrickObserver, GameObserver {
 
     private final String gameId;
@@ -34,7 +32,14 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
 
     @Override
     public void onCardPlayed(Player<?, ?> player, ClassicalCard classicalCard) {
-        var event = new ContreeGameEvent(EventType.CARD_PLAYED, new CardPlayedEventData(player.toString(), classicalCard));
+        ContreePlayer p = (ContreePlayer) player;
+        var event = new ContreeGameEvent(
+            EventType.CARD_PLAYED,
+            new CardPlayedEventData(
+                new PlayerModel(p.getName(), p.getTeam().orElseThrow().name()),
+                classicalCard
+            )
+        );
         eventService.sendAnyGameEvent(gameId, event);
     }
 
@@ -62,10 +67,9 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
     }
 
     @Override
-    public void onDealStarted(String dealId) {
-
-        String message = String.format("Deal %s is started", dealId);
-        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.DEAL_STARTED, message));
+    public void onDealStarted(int dealNumber, String dealId) {
+        var eventData = new DealStartedEventData(dealNumber, dealId);
+        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.DEAL_STARTED, eventData));
 
     }
 
@@ -87,7 +91,18 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
     @Override
     public void onPlacedBid(String s, Player<?, ?> player, ContreeBidValue contreeBidValue, CardSuit cardSuit) {
 
-        var event = new ContreeGameEvent(EventType.PLACED_BID, new BidPlacedEventData(Map.of("name", ((ContreePlayer)player).getName(), "team", player.getTeam().orElseThrow().toString()), contreeBidValue, cardSuit));
+        ContreePlayer p = (ContreePlayer) player;
+
+        var event = new ContreeGameEvent(
+                EventType.PLACED_BID,
+                new BidPlacedEventData(
+                    new PlayerModel(
+                        p.getName(),
+                        p.getTeam().orElseThrow().name()
+                    ),
+                    contreeBidValue, cardSuit
+                )
+        );
 
         eventService.sendAnyGameEvent(gameId, event);
     }
@@ -106,8 +121,8 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
 
     @Override
     public void onPlayStepStarted(String dealId, CardSuit trumpSuit) {
-        String message = String.format("Deal %s: play step started. Trump is %s", dealId, trumpSuit);
-        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.PLAY_STEP_STARTED, message));
+        var eventData = new PlayStepStartedEventData(dealId, trumpSuit);
+        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.PLAY_STEP_STARTED, eventData));
     }
 
     @Override
@@ -118,8 +133,9 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
 
     @Override
     public void onNewTrick(String trickId, CardSuit trumpSuit) {
-        String message = String.format("New Trick #%s: Trump is %s", trickId, trumpSuit);
-        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.TRICK_STARTED, message));
+        //String message = String.format("New Trick #%s: Trump is %s", trickId, trumpSuit);
+        var trickStartedEventData = new TrickStartedEventData(trickId, trumpSuit);
+        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.TRICK_STARTED, trickStartedEventData));
     }
 
     @Override
@@ -131,13 +147,14 @@ public class ContreeGameWebObserver implements ContreeDealObserver, ContreeTrick
     @Override
     public void onEndOfTrick(String trickId, ContreeTeam team) {
         var trickOverEventData = new TrickOverEventData(trickId, team);
-        eventService.sendAnyGameEvent(gameId, trickOverEventData);
+        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.TRICK_OVER, trickOverEventData));
     }
 
-    
-
-    
-
+    @Override
+    public void onJoinedGame(ContreeGame contreeGame, int playerIndex, ContreePlayer player) {
+        var joinedGameEventData = new JoinedGameEventData(playerIndex, player.getName());
+        eventService.sendAnyGameEvent(gameId, new ContreeGameEvent(EventType.JOINED_GAME, joinedGameEventData));
+    }
 }
 
 enum EventType {
@@ -155,7 +172,8 @@ enum EventType {
     PLAY_STEP_STARTED,
     PLAY_STEP_OVER,
     TRUMPED_TRICK,
-    GAME_STATE_UPDATED
+    GAME_STATE_UPDATED,
+    JOINED_GAME
 }
 
 record TrickOverEventData(String trickId, ContreeTeam winnerTeam) {}
@@ -178,7 +196,17 @@ record EndOfDealEventData(
 }
 
 record CardPlayedEventData(
-        String player,
+        PlayerModel player,
         ClassicalCard card) {}
 
-record BidPlacedEventData(Map<String, String> player, ContreeBidValue bidValue, CardSuit cardSuit) {}
+record BidPlacedEventData(PlayerModel player, ContreeBidValue bidValue, CardSuit cardSuit) {}
+
+record TrickStartedEventData(String trickId, CardSuit trumpSuit) {}
+
+record PlayerModel(String name, String team) {}
+
+record PlayStepStartedEventData(String dealId, CardSuit trumpSuit) {}
+
+record DealStartedEventData(int dealNumber, String dealId) {}
+
+record JoinedGameEventData(int playerIndex, String playerName) {}
