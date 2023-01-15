@@ -1,21 +1,21 @@
 package sebastien.perpignane.cardgame.webserver.contree;
 
-import sebastien.perpignane.cardgame.player.contree.event.handler.ContreePlayerEventHandler;
-import sebastien.perpignane.cardgame.player.contree.event.handler.ContreePlayerEventHandlerImpl;
+import sebastien.perpignane.cardgame.player.contree.ContreePlayerEventHandler;
+import sebastien.perpignane.cardgame.player.contree.ContreePlayerImpl;
 
 import java.util.UUID;
 
-public class WebContreePlayer extends ContreePlayerEventHandlerImpl {
+public class WebContreePlayer extends ContreePlayerImpl {
 
-    private final UUID uniqueId;
+    private final String uniqueId;
     private String wsSessionId;
 
     public WebContreePlayer(String name, ContreePlayerEventHandler playerEventHandler) {
         super(name, playerEventHandler);
-        uniqueId = UUID.randomUUID();
+        uniqueId = UUID.randomUUID().toString();
     }
 
-    public UUID getUniqueId() {
+    public String getUniqueId() {
         return uniqueId;
     }
 

@@ -17,7 +17,7 @@ public class ContreeEventService {
     }
 
     public void sendPlayerEvent(PlayerEvent playerEvent) {
-        messagingTemplate.convertAndSendToUser(playerEvent.playerId(), String.format("/topic/game/%s", playerEvent.gameId()), playerEvent.eventData());
+        messagingTemplate.convertAndSendToUser(playerEvent.playerId(), String.format("/topic/game/%s", playerEvent.gameId()), playerEvent);
     }
 
 }
