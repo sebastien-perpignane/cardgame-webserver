@@ -120,8 +120,9 @@ public class ContreeGameController {
         return game.getPlayers().stream().mapToInt(p -> p == null ? 0 : 1).sum();
     }
 
-    private ContreePlayer botPlayer() {
-        return new ContreePlayerImpl(new ContreeBotPlayerEventHandler());
+    private ContreePlayer botPlayer(int playerIndex) {
+        int playerNumber = playerIndex + 1;
+        return new ContreePlayerImpl("Player " + playerNumber, new ContreeBotPlayerEventHandler());
     }
 
     @PostMapping("/{gameId}/start")
@@ -132,7 +133,7 @@ public class ContreeGameController {
 
         int missingPlayers = ContreeGamePlayers.NB_PLAYERS - nbPlayers;
 
-        IntStream.range(0, missingPlayers).forEach(i -> game.joinGame(botPlayer()) );
+        IntStream.range(0, missingPlayers).forEach(i -> game.joinGame(botPlayer(i)) );
 
         var gs = new GameState(
                 gameId,
