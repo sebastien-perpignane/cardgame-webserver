@@ -17,6 +17,17 @@
 		<java.version>17</java.version>
 		<snakeyaml.version>1.33</snakeyaml.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/sebastien-perpignane/cardgame/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<dependencies>
 
 		<dependency>
