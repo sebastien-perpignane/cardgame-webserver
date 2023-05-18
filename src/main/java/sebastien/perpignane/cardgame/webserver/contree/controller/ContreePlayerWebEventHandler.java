@@ -5,6 +5,7 @@ import sebastien.perpignane.cardgame.card.ClassicalCard;
 import sebastien.perpignane.cardgame.game.contree.ContreeBidValue;
 import sebastien.perpignane.cardgame.player.contree.ContreePlayer;
 import sebastien.perpignane.cardgame.player.contree.ContreePlayerEventHandler;
+import sebastien.perpignane.cardgame.player.contree.ContreePlayerStatus;
 import sebastien.perpignane.cardgame.webserver.contree.WebContreePlayer;
 import sebastien.perpignane.cardgame.webserver.contree.websocket.ContreeEventService;
 
@@ -44,13 +45,13 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
 
     @Override
     public void onGameOver() {
-        var playerGameOverEvent = new PlayerEvent(gameId, contreePlayer.getUniqueId(), PlayerEventType.GAME_OVER, "game is over");
+        var playerGameOverEvent = new PlayerEvent(gameId, contreePlayer.getWsSessionId(), PlayerEventType.GAME_OVER, "game is over");
         contreeEventService.sendAnyGameEvent(gameId, playerGameOverEvent);
     }
 
     @Override
     public void onGameStarted() {
-        var playerGameStartedEvent = new PlayerEvent(gameId, contreePlayer.getUniqueId(), PlayerEventType.GAME_STARTED, "game is started");
+        var playerGameStartedEvent = new PlayerEvent(gameId, contreePlayer.getWsSessionId(), PlayerEventType.GAME_STARTED, "game is started");
         contreeEventService.sendAnyGameEvent(gameId, playerGameStartedEvent);
     }
 
@@ -62,7 +63,7 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
 
     @Override
     public void onEjection() {
-        contreeEventService.sendPlayerEvent(new PlayerEvent(gameId, contreePlayer.getUniqueId(), PlayerEventType.EJECTED, "T'es viré"));
+        contreeEventService.sendPlayerEvent(new PlayerEvent(gameId, contreePlayer.getWsSessionId(), PlayerEventType.EJECTED, "T'es viré"));
     }
 
     @Override
@@ -72,7 +73,12 @@ public class ContreePlayerWebEventHandler implements ContreePlayerEventHandler {
 
     @Override
     public void onReceivedHand(Collection<ClassicalCard> hand) {
-        contreeEventService.sendPlayerEvent(new PlayerEvent(gameId, contreePlayer.getUniqueId(), PlayerEventType.HAND_RECEIVED, hand));
+        contreeEventService.sendPlayerEvent(new PlayerEvent(gameId, contreePlayer.getWsSessionId(), PlayerEventType.HAND_RECEIVED, hand));
+    }
+
+    @Override
+    public void onStatusUpdate(ContreePlayerStatus oldStatus, ContreePlayerStatus newStatus) {
+        contreeEventService.sendPlayerEvent(new PlayerEvent(gameId, contreePlayer.getWsSessionId(), PlayerEventType.STATUS_UPDATE, new StatusUpdateEventData(oldStatus, newStatus)));
     }
 }
 
@@ -82,9 +88,12 @@ enum PlayerEventType {
     GAME_STARTED,
     GAME_OVER,
     EJECTED,
-    HAND_RECEIVED
+    HAND_RECEIVED,
+    STATUS_UPDATE
 }
 
 record BidTurnEventData(List<ContreeBidValue> allowedBidValues, List<ClassicalCard> hand) { }
 
 record PlayTurnEventData(List<ClassicalCard> allowedCards, List<ClassicalCard> hand) { }
+
+record StatusUpdateEventData(ContreePlayerStatus oldStatus, ContreePlayerStatus newStatus) {}

@@ -47,7 +47,13 @@ public class WebSocketConfig implements  WebSocketMessageBrokerConfigurer { // W
     @Override
     public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
 
-        SimpleModule cardModule = new SimpleModule("CardModule");
+        SimpleModule cardGameModule = new SimpleModule("cardgame-module");
+        cardGameModule.addSerializer(ClassicalCard.class, new CardSerializer());
+        cardGameModule.addSerializer(ContreeBidValue.class, new ContreeBidValueSerializer());
+        cardGameModule.addSerializer(CardSuit.class, new CardSuitSerializer());
+        objectMapper.registerModule(cardGameModule);
+
+        /*SimpleModule cardModule = new SimpleModule("CardModule");
         cardModule.addSerializer(ClassicalCard.class, new CardSerializer());
 
         SimpleModule bidValueModule = new SimpleModule("BidValueModule");
@@ -55,11 +61,10 @@ public class WebSocketConfig implements  WebSocketMessageBrokerConfigurer { // W
 
         SimpleModule cardSuitModule = new SimpleModule("CardSuitModule");
         cardSuitModule.addSerializer(CardSuit.class, new CardSuitSerializer());
-        //module.addDeserializer(ClassicalCard.class, new CardDeserializer());
 
         objectMapper.registerModule(cardModule);
         objectMapper.registerModule(bidValueModule);
-        objectMapper.registerModule(cardSuitModule);
+        objectMapper.registerModule(cardSuitModule);*/
 
         DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
         resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
@@ -115,13 +120,3 @@ class CardSuitSerializer extends JsonSerializer<CardSuit> {
     }
 }
 
-/*
-class CardDeserializer extends JsonDeserializer<ClassicalCard> {
-    @Override
-    public ClassicalCard deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-        JsonNode t = p.getCodec().readTree(p);
-        String enumName = t.get("name").asText();
-        return ClassicalCard.valueOf(enumName);
-    }
-}
-*/
