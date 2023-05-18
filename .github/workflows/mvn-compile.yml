@@ -10,7 +10,9 @@ on:
 
 jobs:
 
-  build:
+  build-cardgame-webserver:
+
+    name: 'Build cardgame webserver'
 
     uses: sebastien-perpignane/my-workflows/.github/workflows/mvn-java-workflow.yml@main
     with:
