@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
 import sebastien.perpignane.cardgame.card.CardSuit;
@@ -25,6 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static java.lang.System.err;
 
 record GameState(
         String gameId,
@@ -57,14 +58,9 @@ public class ContreeGameController {
     private final ConcurrentHashMap<String, WebContreePlayer> playersById = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WebContreePlayer> playersBySessionId = new ConcurrentHashMap<>();
 
-    @MessageMapping("/{gameId}/place-bid")
-    public void pouet() {
-
-    }
-
     @PostMapping("/create")
     public NewGameResponse createGame(@RequestBody CreateGameRequest createGameRequest, HttpServletRequest r) {
-        var game = ContreeGameFactory.createGame(1500);
+        var game = ContreeGameFactory.createGame(new ContreeGameConfig() {});
 
         String gameId = game.getGameId();
 
@@ -89,7 +85,7 @@ public class ContreeGameController {
     @SubscribeMapping("/create")
     public NewGameResponse subscribeCreateNewGame(Principal principal, @Header("playerName") String playerName) {
 
-        var game = ContreeGameFactory.createGame(1500);
+        var game = ContreeGameFactory.createGame(new ContreeGameConfig() {});
 
         String gameId = game.getGameId();
 
@@ -103,7 +99,6 @@ public class ContreeGameController {
 
         String playerId = player.getId();
 
-        //playersBySessionId.put(sessionId, player);
         playersById.put(playerId, player);
         game.joinGame(player);
         games.put(game.getGameId(), game);
@@ -131,7 +126,7 @@ public class ContreeGameController {
 
         int nbPlayers = getGameNbPlayers(game);
 
-        int missingPlayers = ContreeGamePlayers.NB_PLAYERS - nbPlayers;
+        int missingPlayers = ContreePlayers.NB_PLAYERS - nbPlayers;
 
         IntStream.range(0, missingPlayers).forEach(i -> game.joinGame(botPlayer(i)) );
 
@@ -166,14 +161,6 @@ public class ContreeGameController {
 
         var gs = game.toState();
 
-        /*var gs = new GameState(
-                gameId,
-                game.getPlayers().stream().map(ContreePlayer::getName).toList(),
-                0,
-                0,
-                1500
-        );*/
-
         FullPlayerModel playerModel = new FullPlayerModel(player.getName(), player.getTeam().orElseThrow().name(), player.getHand());
         return new JoinGameResponse(player.getId(), gs, playerModel);
     }
@@ -207,7 +194,7 @@ public class ContreeGameController {
     @SubscribeMapping(value = {"/topic/game/{gameId}", "/user/topic/game/{gameId}"})
     public HelloResponse subscribeToGame(Principal principal, @DestinationVariable String gameId, @Header("playerId") String playerId) {
 
-        System.err.printf("Receiving hello message from user with id %s%n", playerId);
+        err.printf("Receiving hello message from user with id %s%n", playerId);
         var player = playersById.get(playerId);
         player.setWsSessionId(principal.getName());
 
